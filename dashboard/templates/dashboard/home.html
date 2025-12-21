@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>Sessions</h2>
+
+  <select id="sessionSelect">
+    {% for s in sessions %}
+      <option value="{{ s.id }}">
+        {{ s.patient.mrn }} | {{ s.started_at }} | {{ s.note }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <p id="meta"></p>
+  <canvas id="chart" width="1000" height="350"></canvas>
+
+  <script>
+    const ctx = document.getElementById("chart");
+    let chart;
+
+    async function loadSession(sessionId) {
+      const res = await fetch(`/dashboard/api/sessions/${sessionId}/series/`);
+      const payload = await res.json();
+
+      document.getElementById("meta").innerText =
+        `Session ${payload.session.id} | MRN: ${payload.session.patient_mrn} | ${payload.session.note}`;
+
+      const datasets = payload.series.map(s => ({
+        label: `${s.sensor_name} (${s.axis})`,
+        data: s.data.map(p => ({x: p.t, y: p.v})),
+      }));
+
+      const config = {
+        type: "line",
+        data: { datasets },
+        options: {
+          parsing: false,
+          scales: {
+            x: { type: "linear", title: {display: true, text: "Time (s)"} },
+            y: { title: {display: true, text: "Z"} }
+          },
+          elements: { point: { radius: 0 } },
+        }
+      };
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, config);
+    }
+
+    const select = document.getElementById("sessionSelect");
+    select.addEventListener("change", () => loadSession(select.value));
+    loadSession(select.value);
+  </script>
+</body>
+</html>

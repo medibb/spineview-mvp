@@ -1,0 +1,86 @@
+############################
+# Python
+############################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+############################
+# Virtual Environment
+############################
+.venv/
+venv/
+ENV/
+env/
+
+############################
+# Django
+############################
+# Database
+db.sqlite3
+
+# Collected static files
+staticfiles/
+
+# Media uploads
+media/
+
+# Django migrations (keep __init__.py)
+**/migrations/*
+!**/migrations/__init__.py
+
+############################
+# Data / CSV
+############################
+# Raw or large CSV files
+data/*.csv
+
+# Allow small example CSVs if explicitly added
+!data/*_example.csv
+
+############################
+# Logs
+############################
+*.log
+
+############################
+# VS Code / IDE
+############################
+.vscode/
+.idea/
+*.code-workspace
+
+############################
+# OS / System
+############################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+############################
+# Docker
+############################
+# Ignore local Docker volumes & overrides
+docker-compose.override.yml
+*.docker.env
+
+############################
+# GitHub / Copilot
+############################
+# Copilot instruction cache or local variants
+.github/copilot-instructions*.md
+
+############################
+# Jupyter (if later added)
+############################
+.ipynb_checkpoints/
+
+############################
+# Temporary / Backup
+############################
+*.tmp
+*.bak
+*.swp
+*~

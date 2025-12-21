@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Spine/Pelvis FE MVP</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>body{font-family:system-ui,Segoe UI,Arial;margin:20px}</style>
+</head>
+<body>
+  <h2>Spine / Pelvis Flexion-Extension (MVP)</h2>
+  <p>Data from <code>data/spine_dot.csv</code> and <code>data/pelvis_dot.csv</code>.</p>
+  <canvas id="feChart" width="1000" height="350"></canvas>
+
+  <script>
+    const times = JSON.parse('{{ times_json|escapejs }}');
+    const spine = JSON.parse('{{ spine_json|escapejs }}');
+    const pelvis = JSON.parse('{{ pelvis_json|escapejs }}');
+    const relative = JSON.parse('{{ relative_json|escapejs }}');
+
+    // convert to (x,y) pairs for linear x-axis
+    const spineXY = times.map((t, i) => ({ x: t, y: spine[i] }));
+    const pelvisXY = times.map((t, i) => ({ x: t, y: pelvis[i] }));
+    const relativeXY = times.map((t, i) => ({ x: t, y: relative[i] }));
+
+    const canvas = document.getElementById('feChart');
+    const ctx = canvas.getContext('2d');
+
+    const data = {
+      datasets: [
+        {
+          label: 'Spine FE (deg)',
+          data: spineXY,
+          borderColor: 'rgba(220,20,60,0.9)',
+          fill: false,
+          tension: 0.1,
+        },
+        {
+          label: 'Pelvis FE (deg)',
+          data: pelvisXY,
+          borderColor: 'rgba(30,144,255,0.9)',
+          fill: false,
+          tension: 0.1,
+        },
+        {
+          label: 'Relative FE (spine - pelvis) (deg)',
+          data: relativeXY,
+          borderColor: 'rgba(34,139,34,0.9)',
+          fill: false,
+          tension: 0.1,
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        parsing: false,
+        scales: {
+          x: {
+            type: 'linear',
+            title: { display: true, text: 'Time (s)' }
+          },
+          y: {
+            title: { display: true, text: 'Angle (deg)' }
+          }
+        },
+        elements: { point: { radius: 0 } }
+      }
+    };
+
+    new Chart(ctx, config);
+  </script>
+</body>
+</html>
