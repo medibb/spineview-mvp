@@ -1,75 +1,161 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Spine/Pelvis FE MVP</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>body{font-family:system-ui,Segoe UI,Arial;margin:20px}</style>
+	<meta charset="utf-8">
+	<title>Spine/Pelvis FE — MVP</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+	{% load static %}
+	<link rel="stylesheet" href="{% static 'dashboard/mvp.css' %}">
 </head>
 <body>
-  <h2>Spine / Pelvis Flexion-Extension (MVP)</h2>
-  <p>Data from <code>data/spine_dot.csv</code> and <code>data/pelvis_dot.csv</code>.</p>
-  <canvas id="feChart" width="1000" height="350"></canvas>
+	<div class="page">
+		<header class="header">
+			<div class="title">Spine & Pelvis Flexion–Extension</div>
+			<div class="subtitle">Time-series FE (pitch) computed from DOT-quaternion data — clinical research view</div>
+		</header>
 
-  <script>
-    const times = JSON.parse('{{ times_json|escapejs }}');
-    const spine = JSON.parse('{{ spine_json|escapejs }}');
-    const pelvis = JSON.parse('{{ pelvis_json|escapejs }}');
-    const relative = JSON.parse('{{ relative_json|escapejs }}');
+		<main class="main">
+			<section class="card chart-card" aria-label="FE chart">
+				<div class="card-header">
+					<div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+						<h3 class="card-title">FE Time-Series</h3>
+						<div class="card-meta" id="metaInfo">Data: <code>data/spine_dot.csv</code> &amp; <code>data/pelvis_dot.csv</code></div>
+					</div>
+				</div>
 
-    // convert to (x,y) pairs for linear x-axis
-    const spineXY = times.map((t, i) => ({ x: t, y: spine[i] }));
-    const pelvisXY = times.map((t, i) => ({ x: t, y: pelvis[i] }));
-    const relativeXY = times.map((t, i) => ({ x: t, y: relative[i] }));
+				<div class="chart-wrap">
+					<canvas id="feChart" width="1000" height="360" role="img" aria-label="Flexion Extension chart"></canvas>
+				</div>
+			</section>
+		</main>
+	</div>
 
-    const canvas = document.getElementById('feChart');
-    const ctx = canvas.getContext('2d');
+	<script>
+		// injected JSON from Django view
+		const times = JSON.parse('{{ times_json|escapejs }}' || '[]');
+		const spine = JSON.parse('{{ spine_json|escapejs }}' || '[]');
+		const pelvis = JSON.parse('{{ pelvis_json|escapejs }}' || '[]');
+		const relative = JSON.parse('{{ relative_json|escapejs }}' || '[]');
 
-    const data = {
-      datasets: [
-        {
-          label: 'Spine FE (deg)',
-          data: spineXY,
-          borderColor: 'rgba(220,20,60,0.9)',
-          fill: false,
-          tension: 0.1,
-        },
-        {
-          label: 'Pelvis FE (deg)',
-          data: pelvisXY,
-          borderColor: 'rgba(30,144,255,0.9)',
-          fill: false,
-          tension: 0.1,
-        },
-        {
-          label: 'Relative FE (spine - pelvis) (deg)',
-          data: relativeXY,
-          borderColor: 'rgba(34,139,34,0.9)',
-          fill: false,
-          tension: 0.1,
-        }
-      ]
-    };
+		// align lengths defensively
+		const n = Math.min(times.length, spine.length, pelvis.length, relative.length);
+		const tarr = times.slice(0, n);
+		const spineArr = spine.slice(0, n);
+		const pelvisArr = pelvis.slice(0, n);
+		const relArr = relative.slice(0, n);
 
-    const config = {
-      type: 'line',
-      data: data,
-      options: {
-        parsing: false,
-        scales: {
-          x: {
-            type: 'linear',
-            title: { display: true, text: 'Time (s)' }
-          },
-          y: {
-            title: { display: true, text: 'Angle (deg)' }
-          }
-        },
-        elements: { point: { radius: 0 } }
-      }
-    };
+		// build (x,y) pairs for Chart.js linear x-axis
+		const spineXY = tarr.map((t, i) => ({ x: t, y: spineArr[i] }));
+		const pelvisXY = tarr.map((t, i) => ({ x: t, y: pelvisArr[i] }));
+		const relativeXY = tarr.map((t, i) => ({ x: t, y: relArr[i] }));
 
-    new Chart(ctx, config);
-  </script>
+		// zero baseline across time range
+		const zeroXY = tarr.map(t => ({ x: t, y: 0 }));
+
+		const data = {
+			datasets: [
+				{
+					label: 'Spine FE (deg)',
+					data: spineXY,
+					borderColor: 'rgba(134,65,65,0.95)',
+					backgroundColor: 'rgba(134,65,65,0.05)',
+					fill: false,
+					tension: 0.12,
+					yAxisID: 'y',
+				},
+				{
+					label: 'Pelvis FE (deg)',
+					data: pelvisXY,
+					borderColor: 'rgba(60,90,140,0.95)',
+					backgroundColor: 'rgba(60,90,140,0.05)',
+					fill: false,
+					tension: 0.12,
+					yAxisID: 'y',
+				},
+				{
+					label: 'Relative FE (spine - pelvis) (deg)',
+					data: relativeXY,
+					borderColor: 'rgba(70,110,70,0.95)',
+					backgroundColor: 'rgba(70,110,70,0.05)',
+					fill: false,
+					tension: 0.12,
+					yAxisID: 'y1',
+				},
+				{
+					label: '0°',
+					data: zeroXY,
+					borderColor: 'rgba(120,120,120,0.6)',
+					borderWidth: 1,
+					borderDash: [6,6],
+					pointRadius: 0,
+					fill: false,
+					// keep in legend but can be toggled by user
+					yAxisID: 'y',
+				}
+			]
+		};
+
+		const config = {
+			type: 'line',
+			data: data,
+			options: {
+				parsing: false,
+				maintainAspectRatio: false,
+				responsive: true,
+				scales: {
+					x: {
+						type: 'linear',
+						title: { display: true, text: 'Time (s)' },
+						grid: { color: 'rgba(200,200,200,0.08)' },
+						ticks: {
+							callback: function(val) {
+								// show seconds with suffix
+								return Number(val).toFixed(3) + ' s';
+							}
+						}
+					},
+					y: {
+						title: { display: true, text: 'Angle (deg)' },
+						grid: { color: 'rgba(200,200,200,0.08)' }
+					},
+					y1: {
+						position: 'right',
+						title: { display: true, text: 'Relative (deg)' },
+						grid: { drawOnChartArea: false }
+					}
+				},
+				plugins: {
+					legend: { position: 'top', labels: { boxWidth: 12, padding: 12 } }
+				},
+				elements: { point: { radius: 0 } }
+			}
+		};
+
+		// instantiate chart (guard against missing canvas)
+		(function draw(){
+			const canvas = document.getElementById('feChart');
+			if (!canvas) return;
+			const ctx = canvas.getContext('2d');
+			// dispose existing chart instance if page is reloaded dynamically
+			if (canvas._chartInstance) {
+				canvas._chartInstance.destroy();
+			}
+			canvas._chartInstance = new Chart(ctx, config);
+		})();
+
+		// fill metadata fields (sampling rate estimate and duration) if present
+		(function fillMeta(){
+			const samplingEl = document.getElementById('sampling');
+			const durationEl = document.getElementById('duration');
+			if (!tarr || tarr.length < 2) return;
+			const deltas = [];
+			for (let i = 1; i < tarr.length; i++) deltas.push(tarr[i] - tarr[i-1]);
+			const avg = deltas.reduce((a,b)=>a+b,0)/deltas.length;
+			const hz = avg>0 ? (1/avg) : null;
+			if (samplingEl) samplingEl.innerText = hz ? hz.toFixed(1) + ' Hz (est.)' : '—';
+			if (durationEl) durationEl.innerText = (tarr[tarr.length-1] - tarr[0]).toFixed(3) + ' s';
+		})();
+	</script>
 </body>
 </html>
+

@@ -51,12 +51,14 @@ def session_series_api(request, session_id: int):
 def _parse_dot_csv(path):
     """Parse an Xsens DOT CSV file located at `path`.
 
-    Skips preamble/metadata until the header line starting with 'PacketCounter'.
-    Returns lists: times (s) and FE angles (degrees) where FE is taken as the
-    Tait-Bryan 'pitch' angle from the quaternion (w,x,y,z) using the convention:
+        Skips preamble/metadata until the header line starting with 'PacketCounter'.
+        Returns lists: times (s) and FE angles (degrees) where FE is taken as the
+        Tait-Bryan 'pitch' angle from the quaternion (w,x,y,z) using the convention:
       roll = atan2(2*(w*x + y*z), 1 - 2*(x*x + y*y))
       pitch = asin(clamp(2*(w*y - z*x), -1, 1))
       yaw = atan2(2*(w*z + x*y), 1 - 2*(y*y + z*z))
+        Note: newer DOT CSVs use `SampleTimeFine` as microseconds since device start,
+        so convert to seconds by dividing by 1_000_000.
     """
     if not os.path.exists(path):
         return [], []
@@ -77,7 +79,7 @@ def _parse_dot_csv(path):
     angles = []
     for row in reader:
         try:
-            t_ms = float(row.get("SampleTimeFine", 0))
+            t_raw = float(row.get("SampleTimeFine", 0))
             w = float(row.get("Quat_W", 0))
             x = float(row.get("Quat_X", 0))
             y = float(row.get("Quat_Y", 0))
@@ -85,8 +87,9 @@ def _parse_dot_csv(path):
         except Exception:
             continue
 
-        # Convert time to seconds (SampleTimeFine appears in ms)
-        t = t_ms / 1000.0
+        # Convert time to seconds. `SampleTimeFine` is provided in microseconds
+        # (us) in the current CSVs, so divide by 1_000_000.
+        t = t_raw / 1_000_000.0
 
         # compute pitch (FE) from quaternion
         t2 = 2.0 * (w * y - z * x)
