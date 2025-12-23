@@ -23,7 +23,7 @@ function renderMainTimeSeries(timeSeries) {
         y: timeSeries.spine_fe,
         type: 'scatter',
         mode: 'lines',
-        name: '척추 FE',
+        name: '요추',
         line: { color: '#3B82F6', width: 2 }
     };
 
@@ -32,7 +32,7 @@ function renderMainTimeSeries(timeSeries) {
         y: timeSeries.pelvis_fe,
         type: 'scatter',
         mode: 'lines',
-        name: '골반 FE',
+        name: '골반',
         line: { color: '#10B981', width: 2 }
     };
 

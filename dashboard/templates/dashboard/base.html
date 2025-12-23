@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}요추-골반 굴곡-신전 분석 대시보드{% endblock %}</title>
+    <title>{% block title %}PNUH 요추-골반 동작분석{% endblock %}</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,15 +32,12 @@
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <h1 class="text-2xl font-bold text-gray-800">
-                        📊 요추-골반 굴곡-신전 분석 대시보드
+                        📊 PNUH 요추-골반 동작분석
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button id="darkModeToggle" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition">
-                        🌙 다크모드
-                    </button>
-                    <button id="exportButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition">
-                        📥 내보내기
+                    <button id="exportButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition" onclick="window.print()">
+                        🖨️ 인쇄
                     </button>
                 </div>
             </div>
@@ -142,17 +139,6 @@
             }
         }
 
-        // Dark mode toggle (placeholder)
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('darkModeToggle')?.addEventListener('click', () => {
-                alert('다크모드 기능은 추후 추가 예정입니다.');
-            });
-
-            // Export functionality (placeholder)
-            document.getElementById('exportButton')?.addEventListener('click', () => {
-                alert('내보내기 기능은 추후 추가 예정입니다.');
-            });
-        });
     </script>
 
     <script src="/static/js/upload.js"></script>
