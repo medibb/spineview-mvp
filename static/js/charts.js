@@ -111,8 +111,8 @@ function renderMainTimeSeries(timeSeries) {
             orientation: 'h',
             yanchor: 'bottom',
             y: 1.02,
-            xanchor: 'right',
-            x: 1
+            xanchor: 'left',
+            x: 0
         }
     };
 
@@ -265,8 +265,8 @@ function renderDistribution(distribution) {
         Math.max(...pelvisEdges)
     );
 
-    // Default to spine distribution
-    renderDistributionForType('spine', distribution, spinePelvisMin, spinePelvisMax);
+    // Default to relative (요추전만) distribution
+    renderDistributionForType('relative', distribution, spinePelvisMin, spinePelvisMax);
 
     // Setup selector
     const selector = document.getElementById('distributionSelector');
@@ -285,6 +285,9 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
         // Find bins and create color-coded bars
         const binEdges = data.histogram.bin_edges;
         const counts = data.histogram.counts;
+
+        // Calculate bin width for proper bar width
+        const binWidth = binEdges.length > 1 ? binEdges[1] - binEdges[0] : 1;
 
         const normalX = [];
         const normalY = [];
@@ -310,7 +313,8 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
                 y: normalY,
                 type: 'bar',
                 name: '정상 범위',
-                marker: { color: '#F59E0B' }
+                marker: { color: '#F59E0B' },
+                width: binWidth * 0.9
             });
         }
 
@@ -321,7 +325,8 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
                 y: overZeroY,
                 type: 'bar',
                 name: '0도 초과 (주의)',
-                marker: { color: '#EF4444' }
+                marker: { color: '#EF4444' },
+                width: binWidth * 0.9
             });
         }
     } else {
