@@ -1,10 +1,18 @@
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 import os
 import csv
 import math
 import json
+import tempfile
+
+from .forms import CSVUploadForm
+from .services.csv_parser import parse_movella_csv, get_metadata
+from .services.fe_calculator import calculate_fe_angles
+from .services.statistics import calculate_statistics
 
 try:
     from .models import Session, SensorSeries  # optional existing models
@@ -129,3 +137,140 @@ def mvp_view(request):
         "relative_json": json.dumps(relative),
     }
     return render(request, "dashboard/mvp.html", context)
+
+
+# New Dashboard Views
+
+def index(request):
+    """Main dashboard page"""
+    return render(request, 'dashboard/index.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def upload_csv(request):
+    """
+    API endpoint for CSV file upload
+    POST /api/upload/
+    """
+    try:
+        form = CSVUploadForm(request.POST, request.FILES)
+
+        if not form.is_valid():
+            errors = []
+            for field, error_list in form.errors.items():
+                for error in error_list:
+                    errors.append(f"{field}: {error}")
+            return JsonResponse({
+                'status': 'error',
+                'errors': errors
+            }, status=400)
+
+        # Get uploaded files
+        spine_file = request.FILES['spine_file']
+        pelvis_file = request.FILES['pelvis_file']
+
+        # Save files temporarily
+        spine_temp = tempfile.NamedTemporaryFile(delete=False, suffix='.csv')
+        pelvis_temp = tempfile.NamedTemporaryFile(delete=False, suffix='.csv')
+
+        for chunk in spine_file.chunks():
+            spine_temp.write(chunk)
+        for chunk in pelvis_file.chunks():
+            pelvis_temp.write(chunk)
+
+        spine_temp.close()
+        pelvis_temp.close()
+
+        # Parse CSV files
+        spine_df = parse_movella_csv(spine_temp.name)
+        pelvis_df = parse_movella_csv(pelvis_temp.name)
+
+        # Get metadata
+        spine_meta = get_metadata(spine_df)
+        pelvis_meta = get_metadata(pelvis_df)
+
+        # Clean up temp files
+        os.unlink(spine_temp.name)
+        os.unlink(pelvis_temp.name)
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'spine': {
+                    'filename': spine_file.name,
+                    'samples': spine_meta['total_samples'],
+                    'duration_sec': spine_meta['duration_sec'],
+                    'sample_rate': spine_meta['sample_rate'],
+                },
+                'pelvis': {
+                    'filename': pelvis_file.name,
+                    'samples': pelvis_meta['total_samples'],
+                    'duration_sec': pelvis_meta['duration_sec'],
+                    'sample_rate': pelvis_meta['sample_rate'],
+                }
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def analyze_data(request):
+    """
+    API endpoint for data analysis
+    POST /api/analyze/
+    """
+    try:
+        # Get uploaded files from request
+        spine_file = request.FILES.get('spine_file')
+        pelvis_file = request.FILES.get('pelvis_file')
+
+        if not spine_file or not pelvis_file:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Both spine and pelvis files are required'
+            }, status=400)
+
+        # Parse CSV files
+        spine_df = parse_movella_csv(spine_file)
+        pelvis_df = parse_movella_csv(pelvis_file)
+
+        # Calculate FE angles
+        fe_data = calculate_fe_angles(spine_df, pelvis_df)
+
+        # Calculate statistics
+        statistics = calculate_statistics(
+            fe_data['time_series'],
+            fe_data['angular_velocity'],
+            fe_data['acceleration']
+        )
+
+        # Prepare response
+        response_data = {
+            'status': 'success',
+            'data': {
+                'time_series': fe_data['time_series'],
+                'angular_velocity': fe_data['angular_velocity'],
+                'acceleration': fe_data['acceleration'],
+                'statistics': statistics,
+                'metadata': {
+                    **fe_data['metadata'],
+                    'spine_file': spine_file.name,
+                    'pelvis_file': pelvis_file.name,
+                }
+            }
+        }
+
+        return JsonResponse(response_data)
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

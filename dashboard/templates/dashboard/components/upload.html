@@ -1,0 +1,50 @@
+<form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" enctype="multipart/form-data">
+    <!-- Spine File Upload -->
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition cursor-pointer"
+         id="spineDropZone">
+        <input type="file" id="spineFile" name="spine_file" accept=".csv" class="hidden">
+        <div id="spineFileContent">
+            <div class="text-4xl mb-2">🦴</div>
+            <p class="font-bold text-gray-700">척추 CSV</p>
+            <p class="text-sm text-gray-500 mt-1">클릭하거나 파일을 드롭하세요</p>
+            <p class="text-xs text-gray-400 mt-2">spine_dot.csv</p>
+        </div>
+        <div id="spineFileInfo" class="hidden">
+            <div class="text-4xl mb-2">✓</div>
+            <p class="font-bold text-green-600" id="spineFileName">--</p>
+            <p class="text-sm text-gray-600 mt-1">
+                <span id="spineSamples">--</span> samples,
+                <span id="spineDuration">--</span>s
+            </p>
+        </div>
+    </div>
+
+    <!-- Pelvis File Upload -->
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition cursor-pointer"
+         id="pelvisDropZone">
+        <input type="file" id="pelvisFile" name="pelvis_file" accept=".csv" class="hidden">
+        <div id="pelvisFileContent">
+            <div class="text-4xl mb-2">🦴</div>
+            <p class="font-bold text-gray-700">골반 CSV</p>
+            <p class="text-sm text-gray-500 mt-1">클릭하거나 파일을 드롭하세요</p>
+            <p class="text-xs text-gray-400 mt-2">pelvis_dot.csv</p>
+        </div>
+        <div id="pelvisFileInfo" class="hidden">
+            <div class="text-4xl mb-2">✓</div>
+            <p class="font-bold text-green-600" id="pelvisFileName">--</p>
+            <p class="text-sm text-gray-600 mt-1">
+                <span id="pelvisSamples">--</span> samples,
+                <span id="pelvisDuration">--</span>s
+            </p>
+        </div>
+    </div>
+
+    <!-- Analyze Button -->
+    <div class="md:col-span-2 flex justify-center mt-4">
+        <button type="submit" id="analyzeButton"
+                class="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled>
+            ▶ 분석 시작
+        </button>
+    </div>
+</form>

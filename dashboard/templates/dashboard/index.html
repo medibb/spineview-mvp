@@ -1,0 +1,135 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<!-- File Upload Section -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">파일 업로드</h2>
+    {% include "dashboard/components/upload.html" %}
+</div>
+
+<!-- Analysis Results Container (hidden initially) -->
+<div id="analysisResults" class="hidden">
+    <!-- Main Time Series Chart -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">📈 굴곡-신전 각도 (메인 시계열)</h2>
+            <button class="text-gray-600 hover:text-gray-800 transition">⚙️ 설정</button>
+        </div>
+        <div class="flex items-center space-x-6 mb-4 text-sm">
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 rounded" style="background-color: var(--color-spine);"></div>
+                <span class="text-gray-700">척추 FE</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 rounded" style="background-color: var(--color-pelvis);"></div>
+                <span class="text-gray-700">골반 FE</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 rounded" style="background-color: var(--color-relative);"></div>
+                <span class="text-gray-700">상대 FE</span>
+            </div>
+        </div>
+        <div id="mainTimeSeriesChart" class="w-full" style="height: 400px;"></div>
+    </div>
+
+    <!-- Angular Velocity and Acceleration Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">📈 각속도 (Angular Velocity)</h3>
+            <div class="flex items-center space-x-4 mb-4 text-sm">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded bg-red-500"></div>
+                    <span>Gyr_X</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded bg-green-500"></div>
+                    <span>Gyr_Y</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded bg-blue-500"></div>
+                    <span>Gyr_Z</span>
+                </div>
+            </div>
+            <div id="angularVelocityChart" class="w-full" style="height: 300px;"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">📈 가속도 (Acceleration)</h3>
+            <div class="flex items-center space-x-4 mb-4 text-sm">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded bg-red-500"></div>
+                    <span>Acc_X</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded bg-green-500"></div>
+                    <span>Acc_Y</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded bg-blue-500"></div>
+                    <span>Acc_Z</span>
+                </div>
+            </div>
+            <div id="accelerationChart" class="w-full" style="height: 300px;"></div>
+        </div>
+    </div>
+
+    <!-- Statistics, Distribution, and Coordination Analysis -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Statistics Summary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">📋 통계 요약</h3>
+            {% include "dashboard/components/statistics.html" %}
+        </div>
+
+        <!-- Distribution Analysis -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">📊 분포 분석</h3>
+            <div class="mb-4">
+                <select id="distributionSelector" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <option value="spine">척추</option>
+                    <option value="pelvis">골반</option>
+                    <option value="relative">상대</option>
+                </select>
+            </div>
+            <div id="distributionChart" class="w-full" style="height: 300px;"></div>
+            <div id="normalityTest" class="mt-4 text-sm text-gray-600"></div>
+        </div>
+
+        <!-- Coordination Analysis -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🔄 협응 분석</h3>
+            <div id="angleAnglePlot" class="w-full" style="height: 250px;"></div>
+            <div id="coordinationMetrics" class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">R²:</span>
+                    <span id="r-squared" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">상관계수:</span>
+                    <span id="pearson-r" class="font-bold">--</span>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-gray-600 mb-2">기여도:</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">척추</span>
+                        <span id="spine-contribution" class="font-bold text-blue-600">--</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-sm">골반</span>
+                        <span id="pelvis-contribution" class="font-bold text-green-600">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Global variable to store analysis data
+    let analysisData = null;
+
+    // File upload handler will be defined in upload.js
+</script>
+{% endblock %}

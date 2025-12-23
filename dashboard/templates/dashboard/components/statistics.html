@@ -1,0 +1,59 @@
+<div class="space-y-4">
+    <!-- Statistics Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="border-b border-gray-200">
+                <tr>
+                    <th class="text-left py-2 text-gray-600 font-medium">지표</th>
+                    <th class="text-center py-2 text-blue-600 font-medium">척추</th>
+                    <th class="text-center py-2 text-green-600 font-medium">골반</th>
+                    <th class="text-center py-2 text-amber-600 font-medium">상대</th>
+                </tr>
+            </thead>
+            <tbody id="statisticsTableBody" class="divide-y divide-gray-100">
+                <tr>
+                    <td class="py-2 text-gray-700">ROM</td>
+                    <td class="text-center font-mono" id="stat-spine-rom">--</td>
+                    <td class="text-center font-mono" id="stat-pelvis-rom">--</td>
+                    <td class="text-center font-mono" id="stat-relative-rom">--</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-700">평균</td>
+                    <td class="text-center font-mono" id="stat-spine-mean">--</td>
+                    <td class="text-center font-mono" id="stat-pelvis-mean">--</td>
+                    <td class="text-center font-mono" id="stat-relative-mean">--</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-700">표준편차</td>
+                    <td class="text-center font-mono" id="stat-spine-std">--</td>
+                    <td class="text-center font-mono" id="stat-pelvis-std">--</td>
+                    <td class="text-center font-mono" id="stat-relative-std">--</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-700">최대</td>
+                    <td class="text-center font-mono" id="stat-spine-max">--</td>
+                    <td class="text-center font-mono" id="stat-pelvis-max">--</td>
+                    <td class="text-center font-mono" id="stat-relative-max">--</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-700">최소</td>
+                    <td class="text-center font-mono" id="stat-spine-min">--</td>
+                    <td class="text-center font-mono" id="stat-pelvis-min">--</td>
+                    <td class="text-center font-mono" id="stat-relative-min">--</td>
+                </tr>
+                <tr>
+                    <td class="py-2 text-gray-700">피크 각속도</td>
+                    <td class="text-center font-mono" id="stat-spine-peak-vel">--</td>
+                    <td class="text-center font-mono" id="stat-pelvis-peak-vel">--</td>
+                    <td class="text-center text-gray-400">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Relative Angle Info Card -->
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+        <p class="text-sm font-bold text-amber-800 mb-1">상대 각도 ROM</p>
+        <p class="text-2xl font-bold text-amber-600" id="relative-rom-large">--°</p>
+    </div>
+</div>

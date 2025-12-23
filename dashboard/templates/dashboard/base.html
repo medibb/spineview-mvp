@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}요추-골반 굴곡-신전 분석 대시보드{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Plotly.js CDN for interactive charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+
+    <style>
+        /* Custom color palette */
+        :root {
+            --color-spine: #3B82F6;
+            --color-pelvis: #10B981;
+            --color-relative: #F59E0B;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        📊 요추-골반 굴곡-신전 분석 대시보드
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="darkModeToggle" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition">
+                        🌙 다크모드
+                    </button>
+                    <button id="exportButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition">
+                        📥 내보내기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="container mx-auto px-4 py-4">
+            <div id="metadata-footer" class="flex justify-center items-center space-x-6 text-sm text-gray-600">
+                <span id="footer-duration">📅 측정시간: --</span>
+                <span class="text-gray-300">|</span>
+                <span id="footer-samples">📊 샘플수: --</span>
+                <span class="text-gray-300">|</span>
+                <span id="footer-rate">🔄 샘플레이트: --</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 flex flex-col items-center space-y-4">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+            <p class="text-gray-700 font-medium">분석 중...</p>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="errorToast" class="hidden fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-md">
+        <div class="flex items-start space-x-3">
+            <span class="text-xl">⚠️</span>
+            <div>
+                <p class="font-bold">오류 발생</p>
+                <p id="errorMessage" class="text-sm mt-1"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="hidden fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-md">
+        <div class="flex items-start space-x-3">
+            <span class="text-xl">✅</span>
+            <div>
+                <p class="font-bold">성공</p>
+                <p id="successMessage" class="text-sm mt-1"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Check if Plotly loaded
+        window.addEventListener('load', function() {
+            if (typeof Plotly !== 'undefined') {
+                console.log('✅ Plotly loaded successfully');
+            } else {
+                console.error('❌ Plotly failed to load');
+            }
+        });
+
+        // Global utility functions - must be defined before other scripts
+        function showError(message) {
+            const toast = document.getElementById('errorToast');
+            const messageEl = document.getElementById('errorMessage');
+            messageEl.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+
+        function showSuccess(message) {
+            const toast = document.getElementById('successToast');
+            const messageEl = document.getElementById('successMessage');
+            messageEl.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function updateFooter(metadata) {
+            if (metadata) {
+                document.getElementById('footer-duration').textContent =
+                    `📅 측정시간: ${metadata.duration_sec || 0}초`;
+                document.getElementById('footer-samples').textContent =
+                    `📊 샘플수: ${metadata.total_samples || 0}`;
+                document.getElementById('footer-rate').textContent =
+                    `🔄 샘플레이트: ${metadata.sample_rate || 0}Hz`;
+            }
+        }
+
+        // Dark mode toggle (placeholder)
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('darkModeToggle')?.addEventListener('click', () => {
+                alert('다크모드 기능은 추후 추가 예정입니다.');
+            });
+
+            // Export functionality (placeholder)
+            document.getElementById('exportButton')?.addEventListener('click', () => {
+                alert('내보내기 기능은 추후 추가 예정입니다.');
+            });
+        });
+    </script>
+
+    <script src="/static/js/upload.js"></script>
+    <script src="/static/js/charts.js"></script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
