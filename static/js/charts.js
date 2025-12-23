@@ -331,19 +331,24 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
         }
     } else {
         // For spine and pelvis, use single trace
+        const binEdges = data.histogram.bin_edges;
+        const counts = data.histogram.counts;
+        const binWidth = binEdges.length > 1 ? binEdges[1] - binEdges[0] : 1;
+
         const binCenters = [];
-        for (let i = 0; i < data.histogram.counts.length; i++) {
-            binCenters.push((data.histogram.bin_edges[i] + data.histogram.bin_edges[i + 1]) / 2);
+        for (let i = 0; i < counts.length; i++) {
+            binCenters.push((binEdges[i] + binEdges[i + 1]) / 2);
         }
 
         traces = [{
             x: binCenters,
-            y: data.histogram.counts,
+            y: counts,
             type: 'bar',
             name: 'Distribution',
             marker: {
                 color: type === 'spine' ? '#3B82F6' : '#10B981'
-            }
+            },
+            width: binWidth * 0.9
         }];
     }
 
