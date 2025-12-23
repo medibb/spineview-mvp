@@ -42,6 +42,25 @@ def calculate_statistics(time_series: Dict[str, list],
         pelvis_gyr_y = np.array(angular_velocity['pelvis']['gyr_y'])
         pelvis_stats.update(_calculate_velocity_stats(pelvis_gyr_y))
 
+    # Add acceleration metrics
+    if 'spine' in acceleration:
+        spine_acc = acceleration['spine']
+        if all(key in spine_acc for key in ['acc_x', 'acc_y', 'acc_z']):
+            spine_stats.update(_calculate_acceleration_stats(
+                np.array(spine_acc['acc_x']),
+                np.array(spine_acc['acc_y']),
+                np.array(spine_acc['acc_z'])
+            ))
+
+    if 'pelvis' in acceleration:
+        pelvis_acc = acceleration['pelvis']
+        if all(key in pelvis_acc for key in ['acc_x', 'acc_y', 'acc_z']):
+            pelvis_stats.update(_calculate_acceleration_stats(
+                np.array(pelvis_acc['acc_x']),
+                np.array(pelvis_acc['acc_y']),
+                np.array(pelvis_acc['acc_z'])
+            ))
+
     # Coordination analysis
     coordination = calculate_coordination(spine_fe, pelvis_fe)
 
@@ -82,6 +101,37 @@ def _calculate_velocity_stats(velocity: np.ndarray) -> Dict[str, float]:
         'peak_angular_velocity': round(float(np.max(abs_vel)), 2),
         'mean_angular_velocity': round(float(np.mean(abs_vel)), 2),
         'rms_angular_velocity': round(float(np.sqrt(np.mean(velocity**2))), 2),
+    }
+
+
+def _calculate_acceleration_stats(acc_x: np.ndarray, acc_y: np.ndarray,
+                                  acc_z: np.ndarray) -> Dict[str, float]:
+    """
+    Calculate acceleration statistics including magnitude, variability, and jerk
+
+    Args:
+        acc_x, acc_y, acc_z: Acceleration components in m/s²
+
+    Returns:
+        dict: Acceleration metrics
+    """
+
+    # Calculate magnitude
+    magnitude = np.sqrt(acc_x**2 + acc_y**2 + acc_z**2)
+
+    # Calculate jerk (derivative of acceleration)
+    # Using central difference for better accuracy
+    jerk_x = np.gradient(acc_x)
+    jerk_y = np.gradient(acc_y)
+    jerk_z = np.gradient(acc_z)
+    jerk_magnitude = np.sqrt(jerk_x**2 + jerk_y**2 + jerk_z**2)
+
+    return {
+        'mean_magnitude': round(float(np.mean(magnitude)), 3),
+        'peak_magnitude': round(float(np.max(magnitude)), 3),
+        'magnitude_variability': round(float(np.std(magnitude)), 3),
+        'mean_jerk': round(float(np.mean(jerk_magnitude)), 3),
+        'peak_jerk': round(float(np.max(jerk_magnitude)), 3),
     }
 
 

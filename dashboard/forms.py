@@ -5,6 +5,7 @@ Forms for file upload and validation
 from django import forms
 from django.core.exceptions import ValidationError
 import pandas as pd
+import numpy as np
 
 
 class CSVUploadForm(forms.Form):
@@ -86,6 +87,22 @@ class CSVUploadForm(forms.Form):
                 raise ValidationError(
                     f'Insufficient data. Minimum 100 rows required, found {len(df_full)}. (E003)',
                     code='insufficient_data'
+                )
+
+            # Validate quaternion magnitudes (should be ≈ 1)
+            quat_w = df_full['Quat_W'].values
+            quat_x = df_full['Quat_X'].values
+            quat_y = df_full['Quat_Y'].values
+            quat_z = df_full['Quat_Z'].values
+
+            quat_magnitude = np.sqrt(quat_w**2 + quat_x**2 + quat_y**2 + quat_z**2)
+
+            # Check if quaternions are within acceptable range (0.9 to 1.1)
+            invalid_quats = np.where((quat_magnitude < 0.9) | (quat_magnitude > 1.1))[0]
+            if len(invalid_quats) > len(df_full) * 0.1:  # More than 10% invalid
+                raise ValidationError(
+                    f'Invalid quaternion data. {len(invalid_quats)} rows have quaternion magnitude outside acceptable range (0.9-1.1). (E005)',
+                    code='invalid_quaternions'
                 )
 
             # Reset file pointer for later use

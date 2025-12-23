@@ -82,29 +82,29 @@ Update the file after completing each sub-task, not just after completing an ent
   - [x] 5.6 Add interactive features (zoom, pan, hover tooltips, legend toggle)
   - [x] 5.7 Implement angle-angle plot (coordination scatter plot)
 
-- [ ] 6.0 Add statistical analysis and coordination metrics
-  - [ ] 6.1 Implement statistics.py with ROM, mean, std, max, min calculations
-  - [ ] 6.2 Add angular velocity analysis (peak, RMS, mean)
-  - [ ] 6.3 Add acceleration analysis (magnitude, variability, jerk)
-  - [ ] 6.4 Implement coordination analysis (R², correlation, contribution ratio)
-  - [ ] 6.5 Create distribution analysis (histogram, box plot data)
-  - [ ] 6.6 Add Shapiro-Wilk normality test
+- [x] 6.0 Add statistical analysis and coordination metrics
+  - [x] 6.1 Implement statistics.py with ROM, mean, std, max, min calculations
+  - [x] 6.2 Add angular velocity analysis (peak, RMS, mean)
+  - [x] 6.3 Add acceleration analysis (magnitude, variability, jerk)
+  - [x] 6.4 Implement coordination analysis (R², correlation, contribution ratio)
+  - [x] 6.5 Create distribution analysis (histogram, box plot data)
+  - [x] 6.6 Add Shapiro-Wilk normality test
 
-- [ ] 7.0 Implement error handling and validation
-  - [ ] 7.1 Add file extension validator (CSV only)
-  - [ ] 7.2 Add file size validator (max 50MB)
-  - [ ] 7.3 Add required columns validator (Quat_W, X, Y, Z)
-  - [ ] 7.4 Add minimum rows validator (min 100 rows)
-  - [ ] 7.5 Add quaternion range validator (|q| ≈ 1)
-  - [ ] 7.6 Implement user-friendly error messages according to PRD
-  - [ ] 7.7 Add loading indicators and error display in frontend
+- [x] 7.0 Implement error handling and validation
+  - [x] 7.1 Add file extension validator (CSV only)
+  - [x] 7.2 Add file size validator (max 50MB)
+  - [x] 7.3 Add required columns validator (Quat_W, X, Y, Z)
+  - [x] 7.4 Add minimum rows validator (min 100 rows)
+  - [x] 7.5 Add quaternion range validator (|q| ≈ 1)
+  - [x] 7.6 Implement user-friendly error messages according to PRD
+  - [x] 7.7 Add loading indicators and error display in frontend
 
-- [ ] 8.0 Testing and quality assurance
-  - [ ] 8.1 Test CSV parsing with real spine_dot.csv data
-  - [ ] 8.2 Test quaternion to Euler conversion accuracy
-  - [ ] 8.3 Test FE angle calculations
-  - [ ] 8.4 Test file upload flow (both files, one file, invalid file)
-  - [ ] 8.5 Test responsive layout on different screen sizes
-  - [ ] 8.6 Test chart interactivity (zoom, pan, hover)
-  - [ ] 8.7 Verify statistical calculations accuracy
-  - [ ] 8.8 End-to-end test: upload → analyze → visualize
+- [x] 8.0 Testing and quality assurance
+  - [x] 8.1 Test CSV parsing with real spine_dot.csv data
+  - [x] 8.2 Test quaternion to Euler conversion accuracy
+  - [x] 8.3 Test FE angle calculations
+  - [x] 8.4 Test file upload flow (both files, one file, invalid file)
+  - [x] 8.5 Test responsive layout on different screen sizes
+  - [x] 8.6 Test chart interactivity (zoom, pan, hover)
+  - [x] 8.7 Verify statistical calculations accuracy
+  - [x] 8.8 End-to-end test: upload → analyze → visualize

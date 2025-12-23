@@ -234,22 +234,97 @@ def analyze_data(request):
         if not spine_file or not pelvis_file:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Both spine and pelvis files are required'
+                'message': '척추와 골반 파일이 모두 필요합니다. (E006)'
             }, status=400)
 
-        # Parse CSV files
-        spine_df = parse_movella_csv(spine_file)
-        pelvis_df = parse_movella_csv(pelvis_file)
+        # Validate file extensions
+        if not spine_file.name.endswith('.csv'):
+            return JsonResponse({
+                'status': 'error',
+                'message': f'척추 파일은 CSV 형식이어야 합니다. 현재: {spine_file.name} (E001)'
+            }, status=400)
+
+        if not pelvis_file.name.endswith('.csv'):
+            return JsonResponse({
+                'status': 'error',
+                'message': f'골반 파일은 CSV 형식이어야 합니다. 현재: {pelvis_file.name} (E001)'
+            }, status=400)
+
+        # Validate file sizes (max 50MB)
+        max_size = 50 * 1024 * 1024
+        if spine_file.size > max_size:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'척추 파일이 너무 큽니다. 최대 크기: 50MB (E002)'
+            }, status=400)
+
+        if pelvis_file.size > max_size:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'골반 파일이 너무 큽니다. 최대 크기: 50MB (E002)'
+            }, status=400)
+
+        # Parse CSV files with detailed error handling
+        try:
+            spine_df = parse_movella_csv(spine_file)
+        except ValueError as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'척추 파일 파싱 오류: {str(e)} (E004)'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'척추 파일 읽기 오류: {str(e)} (E004)'
+            }, status=400)
+
+        try:
+            pelvis_df = parse_movella_csv(pelvis_file)
+        except ValueError as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'골반 파일 파싱 오류: {str(e)} (E004)'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'골반 파일 읽기 오류: {str(e)} (E004)'
+            }, status=400)
+
+        # Validate minimum data requirements
+        if len(spine_df) < 100:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'척추 데이터가 부족합니다. 최소 100행 필요, 현재 {len(spine_df)}행 (E003)'
+            }, status=400)
+
+        if len(pelvis_df) < 100:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'골반 데이터가 부족합니다. 최소 100행 필요, 현재 {len(pelvis_df)}행 (E003)'
+            }, status=400)
 
         # Calculate FE angles
-        fe_data = calculate_fe_angles(spine_df, pelvis_df)
+        try:
+            fe_data = calculate_fe_angles(spine_df, pelvis_df)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'각도 계산 오류: {str(e)} (E007)'
+            }, status=500)
 
         # Calculate statistics
-        statistics = calculate_statistics(
-            fe_data['time_series'],
-            fe_data['angular_velocity'],
-            fe_data['acceleration']
-        )
+        try:
+            statistics = calculate_statistics(
+                fe_data['time_series'],
+                fe_data['angular_velocity'],
+                fe_data['acceleration']
+            )
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'통계 계산 오류: {str(e)} (E008)'
+            }, status=500)
 
         # Prepare response
         response_data = {
@@ -272,5 +347,5 @@ def analyze_data(request):
     except Exception as e:
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': f'서버 오류: {str(e)} (E999)'
         }, status=500)
