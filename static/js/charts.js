@@ -355,8 +355,11 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
     // Determine x-axis range
     let xAxisRange;
     if (type === 'relative') {
-        // For relative, use its own range
-        xAxisRange = undefined;
+        // For relative, calculate its own range from bin edges
+        const relativeEdges = data.histogram.bin_edges;
+        const relativeMin = Math.min(...relativeEdges);
+        const relativeMax = Math.max(...relativeEdges);
+        xAxisRange = [relativeMin, relativeMax];
     } else {
         // For spine and pelvis, use unified range
         xAxisRange = [xMin, xMax];
