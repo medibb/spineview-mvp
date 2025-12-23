@@ -41,9 +41,56 @@ function renderMainTimeSeries(timeSeries) {
         y: timeSeries.relative_fe,
         type: 'scatter',
         mode: 'lines',
-        name: '상대 FE',
+        name: '요추전만각도',
         line: { color: '#F59E0B', width: 2 }
     };
+
+    // Create shapes for regions where relative_fe > 0 (red background)
+    const shapes = [];
+    let inRedRegion = false;
+    let regionStart = null;
+
+    for (let i = 0; i < timeSeries.relative_fe.length; i++) {
+        const value = timeSeries.relative_fe[i];
+        const time = timeSeries.time[i];
+
+        if (value > 0 && !inRedRegion) {
+            // Start of red region
+            regionStart = time;
+            inRedRegion = true;
+        } else if (value <= 0 && inRedRegion) {
+            // End of red region
+            shapes.push({
+                type: 'rect',
+                xref: 'x',
+                yref: 'paper',
+                x0: regionStart,
+                x1: time,
+                y0: 0,
+                y1: 1,
+                fillcolor: 'rgba(239, 68, 68, 0.1)',
+                line: { width: 0 },
+                layer: 'below'
+            });
+            inRedRegion = false;
+        }
+    }
+
+    // If still in red region at the end
+    if (inRedRegion) {
+        shapes.push({
+            type: 'rect',
+            xref: 'x',
+            yref: 'paper',
+            x0: regionStart,
+            x1: timeSeries.time[timeSeries.time.length - 1],
+            y0: 0,
+            y1: 1,
+            fillcolor: 'rgba(239, 68, 68, 0.1)',
+            line: { width: 0 },
+            layer: 'below'
+        });
+    }
 
     const layout = {
         xaxis: {
@@ -56,6 +103,7 @@ function renderMainTimeSeries(timeSeries) {
             showgrid: true,
             gridcolor: '#E5E7EB'
         },
+        shapes: shapes,
         margin: { l: 50, r: 30, t: 30, b: 50 },
         hovermode: 'x unified',
         showlegend: true,
@@ -204,34 +252,112 @@ function renderAcceleration(acceleration, time) {
 }
 
 function renderDistribution(distribution) {
+    // Calculate unified x-axis range for spine and pelvis
+    const spineEdges = distribution.spine.histogram.bin_edges;
+    const pelvisEdges = distribution.pelvis.histogram.bin_edges;
+
+    const spinePelvisMin = Math.min(
+        Math.min(...spineEdges),
+        Math.min(...pelvisEdges)
+    );
+    const spinePelvisMax = Math.max(
+        Math.max(...spineEdges),
+        Math.max(...pelvisEdges)
+    );
+
     // Default to spine distribution
-    renderDistributionForType('spine', distribution);
+    renderDistributionForType('spine', distribution, spinePelvisMin, spinePelvisMax);
 
     // Setup selector
     const selector = document.getElementById('distributionSelector');
     selector.addEventListener('change', (e) => {
-        renderDistributionForType(e.target.value, distribution);
+        renderDistributionForType(e.target.value, distribution, spinePelvisMin, spinePelvisMax);
     });
 }
 
-function renderDistributionForType(type, distribution) {
+function renderDistributionForType(type, distribution, xMin, xMax) {
     const data = distribution[type];
 
-    const trace = {
-        x: data.histogram.bin_edges,
-        y: data.histogram.counts,
-        type: 'bar',
-        name: 'Distribution',
-        marker: {
-            color: type === 'spine' ? '#3B82F6' : (type === 'pelvis' ? '#10B981' : '#F59E0B')
+    // For relative (요추전만), split data into two traces: normal and over zero
+    let traces = [];
+
+    if (type === 'relative') {
+        // Find bins and create color-coded bars
+        const binEdges = data.histogram.bin_edges;
+        const counts = data.histogram.counts;
+
+        const normalX = [];
+        const normalY = [];
+        const overZeroX = [];
+        const overZeroY = [];
+
+        for (let i = 0; i < counts.length; i++) {
+            const binCenter = (binEdges[i] + binEdges[i + 1]) / 2;
+
+            if (binCenter > 0) {
+                overZeroX.push(binCenter);
+                overZeroY.push(counts[i]);
+            } else {
+                normalX.push(binCenter);
+                normalY.push(counts[i]);
+            }
         }
-    };
+
+        // Normal range trace (amber)
+        if (normalX.length > 0) {
+            traces.push({
+                x: normalX,
+                y: normalY,
+                type: 'bar',
+                name: '정상 범위',
+                marker: { color: '#F59E0B' }
+            });
+        }
+
+        // Over zero trace (red)
+        if (overZeroX.length > 0) {
+            traces.push({
+                x: overZeroX,
+                y: overZeroY,
+                type: 'bar',
+                name: '0도 초과 (주의)',
+                marker: { color: '#EF4444' }
+            });
+        }
+    } else {
+        // For spine and pelvis, use single trace
+        const binCenters = [];
+        for (let i = 0; i < data.histogram.counts.length; i++) {
+            binCenters.push((data.histogram.bin_edges[i] + data.histogram.bin_edges[i + 1]) / 2);
+        }
+
+        traces = [{
+            x: binCenters,
+            y: data.histogram.counts,
+            type: 'bar',
+            name: 'Distribution',
+            marker: {
+                color: type === 'spine' ? '#3B82F6' : '#10B981'
+            }
+        }];
+    }
+
+    // Determine x-axis range
+    let xAxisRange;
+    if (type === 'relative') {
+        // For relative, use its own range
+        xAxisRange = undefined;
+    } else {
+        // For spine and pelvis, use unified range
+        xAxisRange = [xMin, xMax];
+    }
 
     const layout = {
         xaxis: {
             title: 'Angle (degrees)',
             showgrid: true,
-            gridcolor: '#E5E7EB'
+            gridcolor: '#E5E7EB',
+            range: xAxisRange
         },
         yaxis: {
             title: 'Frequency',
@@ -239,7 +365,8 @@ function renderDistributionForType(type, distribution) {
             gridcolor: '#E5E7EB'
         },
         margin: { l: 50, r: 30, t: 20, b: 50 },
-        showlegend: false
+        showlegend: type === 'relative',
+        barmode: 'overlay'
     };
 
     const config = {
@@ -247,7 +374,7 @@ function renderDistributionForType(type, distribution) {
         displayModeBar: false
     };
 
-    Plotly.newPlot('distributionChart', [trace], layout, config);
+    Plotly.newPlot('distributionChart', traces, layout, config);
 
     // Update normality test info
     const normalityEl = document.getElementById('normalityTest');
