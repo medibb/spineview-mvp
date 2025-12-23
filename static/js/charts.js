@@ -289,46 +289,35 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
         // Calculate bin width for proper bar width
         const binWidth = binEdges.length > 1 ? binEdges[1] - binEdges[0] : 1;
 
-        const normalX = [];
-        const normalY = [];
-        const overZeroX = [];
-        const overZeroY = [];
+        // Create all bin centers and colors
+        const allX = [];
+        const allY = [];
+        const colors = [];
 
         for (let i = 0; i < counts.length; i++) {
             const binCenter = (binEdges[i] + binEdges[i + 1]) / 2;
+            allX.push(binCenter);
+            allY.push(counts[i]);
 
+            // Color based on bin center position
             if (binCenter > 0) {
-                overZeroX.push(binCenter);
-                overZeroY.push(counts[i]);
+                colors.push('#EF4444'); // Red for over zero
             } else {
-                normalX.push(binCenter);
-                normalY.push(counts[i]);
+                colors.push('#F59E0B'); // Amber for normal range
             }
         }
 
-        // Normal range trace (amber)
-        if (normalX.length > 0) {
-            traces.push({
-                x: normalX,
-                y: normalY,
-                type: 'bar',
-                name: '정상 범위',
-                marker: { color: '#F59E0B' },
-                width: binWidth * 0.9
-            });
-        }
-
-        // Over zero trace (red)
-        if (overZeroX.length > 0) {
-            traces.push({
-                x: overZeroX,
-                y: overZeroY,
-                type: 'bar',
-                name: '0도 초과 (주의)',
-                marker: { color: '#EF4444' },
-                width: binWidth * 0.9
-            });
-        }
+        // Single trace with individual bar colors
+        traces.push({
+            x: allX,
+            y: allY,
+            type: 'bar',
+            marker: {
+                color: colors
+            },
+            width: binWidth * 0.9,
+            showlegend: false
+        });
     } else {
         // For spine and pelvis, use single trace
         const binEdges = data.histogram.bin_edges;
@@ -378,8 +367,20 @@ function renderDistributionForType(type, distribution, xMin, xMax) {
             gridcolor: '#E5E7EB'
         },
         margin: { l: 50, r: 30, t: 20, b: 50 },
-        showlegend: type === 'relative',
-        barmode: 'overlay'
+        showlegend: false,
+        barmode: 'overlay',
+        annotations: type === 'relative' ? [
+            {
+                x: 1,
+                y: 1.1,
+                xref: 'paper',
+                yref: 'paper',
+                text: '<span style="color: #F59E0B;">■</span> 정상 범위  <span style="color: #EF4444;">■</span> 0도 초과 (주의)',
+                showarrow: false,
+                xanchor: 'right',
+                font: { size: 11 }
+            }
+        ] : []
     };
 
     const config = {
