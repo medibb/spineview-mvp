@@ -97,16 +97,72 @@
 
 /* Print styles */
 @media print {
+    /* Hide non-essential elements */
     .no-print {
         display: none !important;
     }
 
-    body {
-        background: white;
+    /* Fit everything on one page */
+    @page {
+        size: A4 landscape;
+        margin: 0.5cm;
     }
 
+    body {
+        background: white;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Remove shadows and adjust borders */
     .shadow-md {
         box-shadow: none;
         border: 1px solid #e5e7eb;
+    }
+
+    /* Scale down content to fit */
+    #analysisResults {
+        transform: scale(0.75);
+        transform-origin: top left;
+        width: 133.33%; /* Compensate for scale */
+    }
+
+    /* Reduce margins and paddings */
+    .p-6 {
+        padding: 0.5rem !important;
+    }
+
+    .mb-6 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .gap-6 {
+        gap: 0.5rem !important;
+    }
+
+    /* Reduce chart heights for compact layout */
+    #mainTimeSeriesChart {
+        height: 250px !important;
+    }
+
+    #angularVelocityChart,
+    #accelerationChart {
+        height: 180px !important;
+    }
+
+    #distributionChart,
+    #angleAnglePlot {
+        height: 180px !important;
+    }
+
+    /* Ensure no page breaks */
+    * {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Keep grid layouts compact */
+    .grid {
+        page-break-inside: avoid;
     }
 }
