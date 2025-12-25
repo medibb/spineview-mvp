@@ -8,17 +8,18 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 
 ## Goals
 
-1. **Enable automated sit-to-stand movement detection** from uploaded sensor data
+1. **Provide separate tab-based interface** for sit-to-stand movement analysis
 2. **Visualize lumbar lordosis maintenance** throughout the sit-to-stand motion (target: ≤0°)
 3. **Quantify pelvic rotation (hip hinge)** usage during the movement
 4. **Measure trunk forward lean** to assess movement strategy
 5. **Provide clear, actionable feedback** through individual metric scores
-6. **Integrate seamlessly** with existing squat analysis workflow
+6. **Integrate seamlessly** with existing squat analysis workflow via tab navigation
 
 ## User Stories
 
 **As a physical therapist**, I want to:
-- Automatically identify sit-to-stand movements from uploaded sensor data so I can analyze multiple repetitions without manual segmentation
+- Switch between squat and sit-to-stand analysis tabs to analyze different movement patterns from the same patient
+- Segment continuous data into individual sit-to-stand repetitions for detailed analysis
 - See individual performance scores for each repetition so I can track patient progress over time
 - Compare lumbar lordosis, pelvic rotation, and trunk lean metrics so I can identify specific movement faults
 
@@ -34,17 +35,18 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 
 ## Functional Requirements
 
-### FR1: Movement Type Detection
-1.1. The system SHALL automatically detect sit-to-stand movements from uploaded CSV data based on acceleration and angular velocity patterns
-1.2. The system SHALL segment continuous data into individual sit-to-stand repetitions
-1.3. The system SHALL display the number of detected repetitions to the user
-1.4. The system SHALL handle data containing mixed movement types (both squats and sit-to-stand)
+### FR1: Tab-Based Navigation
+1.1. The system SHALL provide a tab interface with two distinct analysis modes: "스쿼트 분석" and "앉았다 일어서기 분석"
+1.2. The system SHALL display both tabs as separate, clickable options after file upload
+1.3. The system SHALL maintain independent analysis results for each tab
+1.4. The system SHALL preserve the existing squat analysis functionality without modification in its tab
+1.5. Users SHALL manually select which tab to view (no automatic switching)
 
-### FR2: Analysis Tab Structure
-2.1. The system SHALL provide a dropdown/selector to choose between "스쿼트 분석" and "앉았다 일어서기 분석"
-2.2. The system SHALL automatically select the appropriate analysis type based on detected movement patterns
-2.3. The system SHALL maintain separate upload areas or use a unified upload with automatic routing
-2.4. The system SHALL preserve the existing squat analysis functionality without modification
+### FR2: Movement Repetition Detection
+2.1. The system SHALL segment continuous sit-to-stand data into individual repetitions based on acceleration patterns
+2.2. The system SHALL display the number of detected sit-to-stand repetitions to the user
+2.3. The system SHALL analyze each repetition independently
+2.4. The system SHALL support 1-20 repetitions per upload session
 
 ### FR3: Lumbar Lordosis Visualization Panel
 3.1. The system SHALL display a time-series chart of relative lumbar lordosis angle (spine-pelvis) throughout the movement
@@ -95,7 +97,7 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 
 1. **Real-time feedback during movement** - This version focuses on post-movement analysis only
 2. **Custom threshold configuration** - Uses fixed 0° lordosis threshold (no user adjustment)
-3. **Combined squat + sit-to-stand analysis** - Each upload analyzes one movement type
+3. **Automatic movement type detection** - Users manually select squat vs. sit-to-stand tab
 4. **Video integration** - No video upload or synchronization with sensor data
 5. **Predictive modeling** - No injury risk prediction or progression forecasting
 6. **Multi-session comparison** - No historical trend analysis across different dates
@@ -104,9 +106,11 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 ## Design Considerations
 
 ### UI/UX Requirements
-- **Tab Navigation**: Add horizontal tab selector at top of analysis results area
-  - Tab 1: "스쿼트 분석" (existing)
-  - Tab 2: "앉았다 일어서기 분석" (new)
+- **Tab Navigation**: Add horizontal tab selector at top of analysis results area after file upload
+  - Tab 1: "스쿼트 분석" (existing functionality)
+  - Tab 2: "앉았다 일어서기 분석" (new functionality)
+  - Both tabs process the same uploaded data differently
+  - Users manually click tabs to switch between analysis types
 - **Panel Layout**: Three-column grid for sit-to-stand analysis
   - Left: Lumbar Lordosis Panel
   - Center: Pelvic Rotation (Hip Hinge) Panel
@@ -127,10 +131,11 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 ## Technical Considerations
 
 ### Data Processing
-- **Movement Detection Algorithm**:
-  - Use acceleration magnitude threshold to detect movement onset
-  - Use angular velocity patterns to differentiate sit-to-stand from squats
-  - Identify seat-off point from pelvis vertical acceleration peak
+- **Repetition Segmentation Algorithm**:
+  - Use acceleration magnitude threshold to detect movement onset/offset
+  - Identify individual sit-to-stand cycles from continuous data
+  - Mark seat-off point from pelvis vertical acceleration peak
+  - No automatic movement type classification (user selects tab)
 - **Angle Calculations**:
   - Lumbar lordosis: Same as squat analysis (spine FE - pelvis FE)
   - Pelvic rotation: Pitch angle from pelvis quaternion
@@ -142,10 +147,11 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 
 ### Integration Points
 - Extend `dashboard/services/statistics.py` with sit-to-stand specific functions
-- Create new analysis view or extend existing `analyze_movement` endpoint
-- Add movement type parameter to API calls
+- Modify existing `analyze_movement` view to return both squat and sit-to-stand analysis
+- Add tab switching logic in frontend JavaScript
 - Reuse existing Plotly.js chart infrastructure
-- Add new JavaScript module `sit-to-stand-charts.js`
+- Add new JavaScript module `sit-to-stand-charts.js` for sit-to-stand visualizations
+- Store both analysis results in single API response for tab switching
 
 ### Performance
 - Process up to 20 repetitions without significant delay (<3 seconds)
@@ -155,8 +161,8 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 ## Success Metrics
 
 ### Technical Success
-1. **Accuracy**: Movement detection accuracy >95% for sit-to-stand vs. squat classification
-2. **Performance**: Analysis completes in <3 seconds for 10 repetitions
+1. **Accuracy**: Repetition segmentation accuracy >95% for detecting individual sit-to-stand cycles
+2. **Performance**: Analysis completes in <3 seconds for 10 repetitions (both squat and sit-to-stand)
 3. **Reliability**: Handle 100 consecutive uploads without errors
 4. **Coverage**: Successfully process data from 50 different patients
 
@@ -177,28 +183,36 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 3. **Score Weighting**: Are all three scores (lordosis, hip hinge, trunk lean) equally important, or should we weight them differently in an overall score?
 4. **Reference Data**: Do we have normative data for healthy sit-to-stand patterns to show comparison ranges?
 5. **Export Format**: Should sit-to-stand results export separately from squat results, or combine into one report?
+6. **Tab Persistence**: Should the selected tab (squat vs. sit-to-stand) persist when uploading new files, or reset to default?
 
 ## Implementation Phases
 
 ### Phase 1: Core Analysis Engine (Week 1-2)
-- Implement movement detection algorithm
-- Add sit-to-stand specific angle calculations
+- Implement repetition segmentation algorithm for sit-to-stand
+- Add sit-to-stand specific angle calculations (lordosis, pelvic rotation, trunk lean)
 - Create scoring functions for three metrics
+- Extend backend API to return both squat and sit-to-stand analyses
 - Write unit tests for core logic
 
-### Phase 2: Visualization & UI (Week 3-4)
-- Add tab navigation to existing dashboard
-- Create three panel layout for sit-to-stand
-- Implement time-series charts for each metric
-- Add score card components
+### Phase 2: Tab Navigation & UI Structure (Week 3)
+- Add tab navigation component to analysis results area
+- Implement tab switching logic in JavaScript
+- Create three-panel layout structure for sit-to-stand tab
+- Ensure squat analysis tab remains unchanged
 
-### Phase 3: Integration & Polish (Week 5)
-- Connect frontend to backend API
+### Phase 3: Sit-to-Stand Visualizations (Week 4)
+- Implement lordosis visualization panel with time-series chart
+- Create pelvic rotation (hip hinge) panel with metrics
+- Build trunk forward lean panel with scoring
+- Add score cards with color-coded feedback
+
+### Phase 4: Integration & Testing (Week 5)
+- Connect sit-to-stand frontend to backend API
 - Add error handling and data validation
-- Implement print/export functionality
+- Implement print/export functionality for both tabs
 - User acceptance testing with therapists
 
-### Phase 4: Documentation & Deployment (Week 6)
+### Phase 5: Documentation & Deployment (Week 6)
 - Write user guide for sit-to-stand analysis
 - Update deployment documentation
 - Deploy to Synology NAS (Docker)
