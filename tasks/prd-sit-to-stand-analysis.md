@@ -19,19 +19,19 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 
 **As a physical therapist**, I want to:
 - Switch between squat and sit-to-stand analysis tabs to analyze different movement patterns from the same patient
-- Segment continuous data into individual sit-to-stand repetitions for detailed analysis
-- See individual performance scores for each repetition so I can track patient progress over time
-- Compare lumbar lordosis, pelvic rotation, and trunk lean metrics so I can identify specific movement faults
+- Analyze a single sit-to-stand movement to assess patient technique
+- See performance scores for lordosis, hip hinge, and trunk lean so I can identify specific movement faults
+- Track improvement by comparing scores across different session uploads
 
 **As a patient with lower back pain**, I want to:
 - See visual feedback on whether I maintained proper lumbar curve during standing so I know if I performed the movement correctly
-- Understand which repetitions were performed well vs. poorly so I can recognize the correct movement pattern
-- View simple metrics that show my improvement over therapy sessions
+- View simple scores that tell me how well I performed the movement
+- Track my improvement over therapy sessions by comparing scores
 
 **As a researcher**, I want to:
 - Access detailed biomechanical data for each phase of the sit-to-stand movement
-- Export statistical summaries of multiple repetitions for analysis
-- Compare movement patterns between different patient populations
+- Export statistical summaries and angle data for analysis
+- Compare movement patterns between different patients
 
 ## Functional Requirements
 
@@ -42,18 +42,18 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 1.4. The system SHALL preserve the existing squat analysis functionality without modification in its tab
 1.5. Users SHALL manually select which tab to view (no automatic switching)
 
-### FR2: Movement Repetition Detection
-2.1. The system SHALL segment continuous sit-to-stand data into individual repetitions based on acceleration patterns
-2.2. The system SHALL display the number of detected sit-to-stand repetitions to the user
-2.3. The system SHALL analyze each repetition independently
-2.4. The system SHALL support 1-20 repetitions per upload session
+### FR2: Single Movement Analysis
+2.1. The system SHALL analyze a single sit-to-stand movement cycle from uploaded data
+2.2. The system SHALL use the entire uploaded data as one continuous sit-to-stand movement
+2.3. The system SHALL NOT perform repetition segmentation or multi-rep analysis
+2.4. The system SHALL validate that uploaded data contains a complete sit-to-stand movement
 
 ### FR3: Lumbar Lordosis Visualization Panel
 3.1. The system SHALL display a time-series chart of relative lumbar lordosis angle (spine-pelvis) throughout the movement
 3.2. The system SHALL highlight regions where lordosis angle exceeds 0° with red background shading
 3.3. The system SHALL mark the target zone (≤0°) with green/amber coloring
-3.4. The system SHALL show lordosis angle for each detected repetition separately or as overlay
-3.5. The system SHALL display mean, max, min, and standard deviation of lordosis angle per repetition
+3.4. The system SHALL show lordosis angle progression throughout the single movement
+3.5. The system SHALL display mean, max, min, and standard deviation of lordosis angle for the movement
 
 ### FR4: Pelvic Rotation (Hip Hinge) Panel
 4.1. The system SHALL calculate pelvic rotation angle from pelvis sensor quaternion data
@@ -70,19 +70,18 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 5.5. The system SHALL compute a trunk lean strategy score
 
 ### FR6: Statistical Summary
-6.1. The system SHALL provide per-repetition statistics including:
+6.1. The system SHALL provide movement statistics including:
     - Lumbar lordosis score (% of movement ≤0°)
     - Hip hinge utilization score (pelvic rotation range)
     - Trunk lean score (optimal forward lean pattern)
-6.2. The system SHALL calculate aggregate statistics across all repetitions
-6.3. The system SHALL display confidence intervals or variability metrics
-6.4. The system SHALL provide a Shapiro-Wilk normality test for each metric
+6.2. The system SHALL display summary statistics (mean, max, min, SD) for each metric
+6.3. The system SHALL NOT perform normality tests (single movement, not multiple samples)
 
 ### FR7: Feedback Mechanism
-7.1. The system SHALL provide individual scores (0-100) for each metric per repetition:
-    - Lordosis Maintenance Score
-    - Hip Hinge Score
-    - Trunk Lean Strategy Score
+7.1. The system SHALL provide individual scores (0-100) for each metric:
+    - Lordosis Maintenance Score (single movement)
+    - Hip Hinge Score (single movement)
+    - Trunk Lean Strategy Score (single movement)
 7.2. The system SHALL NOT provide binary pass/fail judgments
 7.3. The system SHALL display scores in an easy-to-read dashboard format
 7.4. The system SHALL color-code scores (green: 80-100, yellow: 60-79, red: <60) for quick interpretation
@@ -91,7 +90,7 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 8.1. The system SHALL accept the same Movella DOT CSV format as squat analysis
 8.2. The system SHALL validate quaternion data quality before analysis
 8.3. The system SHALL handle missing data points gracefully
-8.4. The system SHALL support analysis of 1-20 repetitions per upload
+8.4. The system SHALL analyze the entire uploaded dataset as one sit-to-stand movement
 
 ## Non-Goals (Out of Scope)
 
@@ -131,9 +130,10 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 ## Technical Considerations
 
 ### Data Processing
-- **Repetition Segmentation Algorithm**:
-  - Use acceleration magnitude threshold to detect movement onset/offset
-  - Identify individual sit-to-stand cycles from continuous data
+- **Single Movement Analysis**:
+  - Analyze entire uploaded data as one sit-to-stand movement
+  - No repetition segmentation required
+  - Identify movement phases (sitting, transition, standing) using pelvis acceleration
   - Mark seat-off point from pelvis vertical acceleration peak
   - No automatic movement type classification (user selects tab)
 - **Angle Calculations**:
@@ -154,15 +154,15 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 - Store both analysis results in single API response for tab switching
 
 ### Performance
-- Process up to 20 repetitions without significant delay (<3 seconds)
-- Maintain sub-second response for single repetition analysis
+- Process single sit-to-stand movement analysis in <1 second
+- Maintain sub-second response for typical session length (10-30 seconds)
 - Optimize quaternion-to-Euler conversions with NumPy vectorization
 
 ## Success Metrics
 
 ### Technical Success
-1. **Accuracy**: Repetition segmentation accuracy >95% for detecting individual sit-to-stand cycles
-2. **Performance**: Analysis completes in <3 seconds for 10 repetitions (both squat and sit-to-stand)
+1. **Accuracy**: Angle calculations accurate within ±1° compared to manual analysis
+2. **Performance**: Analysis completes in <1 second for single movement (both squat and sit-to-stand)
 3. **Reliability**: Handle 100 consecutive uploads without errors
 4. **Coverage**: Successfully process data from 50 different patients
 
@@ -179,20 +179,19 @@ This feature adds a second analysis mode to the PNUH Lumbo-Pelvic Movement Analy
 ## Open Questions
 
 1. **Movement Phase Definition**: How should we algorithmically define "seat-off", "mid-rise", and "standing" phases? Use time percentiles or biomechanical markers?
-2. **Multi-Rep Display**: Should we show all repetitions on one chart (overlaid) or use a carousel/grid view?
-3. **Score Weighting**: Are all three scores (lordosis, hip hinge, trunk lean) equally important, or should we weight them differently in an overall score?
-4. **Reference Data**: Do we have normative data for healthy sit-to-stand patterns to show comparison ranges?
-5. **Export Format**: Should sit-to-stand results export separately from squat results, or combine into one report?
-6. **Tab Persistence**: Should the selected tab (squat vs. sit-to-stand) persist when uploading new files, or reset to default?
+2. **Score Weighting**: Are all three scores (lordosis, hip hinge, trunk lean) equally important, or should we weight them differently in an overall score?
+3. **Reference Data**: Do we have normative data for healthy sit-to-stand patterns to show comparison ranges?
+4. **Export Format**: Should sit-to-stand results export separately from squat results, or combine into one report?
+5. **Tab Persistence**: Should the selected tab (squat vs. sit-to-stand) persist when uploading new files, or reset to default?
 
 ## Implementation Phases
 
 ### Phase 1: Core Analysis Engine (Week 1-2)
-- Implement repetition segmentation algorithm for sit-to-stand
+- Implement single movement analysis for sit-to-stand
 - Add sit-to-stand specific angle calculations (lordosis, pelvic rotation, trunk lean)
 - Create scoring functions for three metrics
 - Extend backend API to return both squat and sit-to-stand analyses
-- Write unit tests for core logic
+- Validate angle calculation accuracy
 
 ### Phase 2: Tab Navigation & UI Structure (Week 3)
 - Add tab navigation component to analysis results area
