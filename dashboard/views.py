@@ -13,6 +13,7 @@ from .forms import CSVUploadForm
 from .services.csv_parser import parse_movella_csv, get_metadata
 from .services.fe_calculator import calculate_fe_angles
 from .services.statistics import calculate_statistics
+from .services.sit_to_stand import analyze_sit_to_stand
 
 try:
     from .models import Session, SensorSeries  # optional existing models
@@ -313,7 +314,7 @@ def analyze_data(request):
                 'message': f'각도 계산 오류: {str(e)} (E007)'
             }, status=500)
 
-        # Calculate statistics
+        # Calculate squat analysis statistics
         try:
             statistics = calculate_statistics(
                 fe_data['time_series'],
@@ -326,14 +327,29 @@ def analyze_data(request):
                 'message': f'통계 계산 오류: {str(e)} (E008)'
             }, status=500)
 
-        # Prepare response
+        # Calculate sit-to-stand analysis
+        try:
+            sit_to_stand_analysis = analyze_sit_to_stand(spine_df, pelvis_df)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'앉았다 일어서기 분석 오류: {str(e)} (E009)'
+            }, status=500)
+
+        # Prepare response with both analyses
         response_data = {
             'status': 'success',
             'data': {
-                'time_series': fe_data['time_series'],
-                'angular_velocity': fe_data['angular_velocity'],
-                'acceleration': fe_data['acceleration'],
-                'statistics': statistics,
+                # Squat analysis (existing functionality)
+                'squat_analysis': {
+                    'time_series': fe_data['time_series'],
+                    'angular_velocity': fe_data['angular_velocity'],
+                    'acceleration': fe_data['acceleration'],
+                    'statistics': statistics,
+                },
+                # Sit-to-stand analysis (new functionality)
+                'sit_to_stand_analysis': sit_to_stand_analysis,
+                # Shared metadata
                 'metadata': {
                     **fe_data['metadata'],
                     'spine_file': spine_file.name,

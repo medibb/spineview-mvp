@@ -39,6 +39,37 @@
     background-color: #EFF6FF;
 }
 
+/* Tab Navigation Styles */
+.tab-button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.tab-active {
+    background-color: #3B82F6;
+    color: white;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.tab-inactive {
+    background-color: #F3F4F6;
+    color: #6B7280;
+}
+
+.tab-inactive:hover {
+    background-color: #E5E7EB;
+    color: #374151;
+}
+
+.tab-content {
+    display: block;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
 /* Loading animation */
 @keyframes pulse {
     0%, 100% {

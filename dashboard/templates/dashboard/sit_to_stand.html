@@ -1,0 +1,106 @@
+<!-- Sit-to-Stand Analysis Panel -->
+<div class="space-y-6">
+    <!-- Score Cards Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Lordosis Score Card -->
+        <div id="lordosisScoreCard" class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800">요추전만 유지</h3>
+                <span class="text-3xl">📏</span>
+            </div>
+            <div class="text-center">
+                <div id="lordosisScore" class="text-5xl font-bold text-gray-800 mb-2">--</div>
+                <p class="text-sm text-gray-600">점수 (0-100)</p>
+            </div>
+        </div>
+
+        <!-- Hip Hinge Score Card -->
+        <div id="hipHingeScoreCard" class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800">고관절 힌지</h3>
+                <span class="text-3xl">🦴</span>
+            </div>
+            <div class="text-center">
+                <div id="hipHingeScore" class="text-5xl font-bold text-gray-800 mb-2">--</div>
+                <p class="text-sm text-gray-600">점수 (0-100)</p>
+            </div>
+        </div>
+
+        <!-- Trunk Lean Score Card -->
+        <div id="trunkLeanScoreCard" class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800">체간 기울임</h3>
+                <span class="text-3xl">🏃</span>
+            </div>
+            <div class="text-center">
+                <div id="trunkLeanScore" class="text-5xl font-bold text-gray-800 mb-2">--</div>
+                <p class="text-sm text-gray-600">점수 (0-100)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Panels -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Lumbar Lordosis Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">📏 요추전만 각도</h3>
+            <div id="lordosisChart" class="w-full" style="height: 300px;"></div>
+            <div id="lordosisStats" class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">평균:</span>
+                    <span id="lordosis-mean" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">최대:</span>
+                    <span id="lordosis-max" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">최소:</span>
+                    <span id="lordosis-min" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">표준편차:</span>
+                    <span id="lordosis-std" class="font-bold">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pelvic Rotation (Hip Hinge) Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🦴 골반 회전</h3>
+            <div id="hipHingeChart" class="w-full" style="height: 300px;"></div>
+            <div id="hipHingeStats" class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">회전 범위:</span>
+                    <span id="hip-range" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">최대값:</span>
+                    <span id="hip-peak" class="font-bold">--</span>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">최적 범위: 30-60°</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trunk Forward Lean Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🏃 체간 전방 기울임</h3>
+            <div id="trunkLeanChart" class="w-full" style="height: 300px;"></div>
+            <div id="trunkLeanStats" class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">최대 기울임:</span>
+                    <span id="trunk-peak" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">최대 시점:</span>
+                    <span id="trunk-peak-time" class="font-bold">--</span>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">최적 범위: 20-45°</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

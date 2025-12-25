@@ -7,8 +7,24 @@
     {% include "dashboard/components/upload.html" %}
 </div>
 
+<!-- Tab Navigation (hidden initially, shown after upload) -->
+<div id="tabNavigation" class="hidden mb-6 no-print">
+    <div class="bg-white rounded-lg shadow-md p-2">
+        <div class="flex space-x-2">
+            <button id="squatTab" onclick="switchTab('squat')" class="tab-button tab-active flex-1 px-6 py-3 rounded-lg font-semibold transition-all">
+                🏋️ 스쿼트 분석
+            </button>
+            <button id="sitToStandTab" onclick="switchTab('sitToStand')" class="tab-button tab-inactive flex-1 px-6 py-3 rounded-lg font-semibold transition-all">
+                🪑 앉았다 일어서기 분석
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Analysis Results Container (hidden initially) -->
 <div id="analysisResults" class="hidden">
+    <!-- Squat Analysis Content -->
+    <div id="squatContent" class="tab-content">
     <!-- Main Time Series Chart -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex justify-between items-center mb-4">
@@ -108,6 +124,14 @@
             </div>
         </div>
     </div>
+    </div>
+    <!-- End Squat Content -->
+
+    <!-- Sit-to-Stand Analysis Content -->
+    <div id="sitToStandContent" class="tab-content hidden">
+        {% include "dashboard/sit_to_stand.html" %}
+    </div>
+    <!-- End Sit-to-Stand Content -->
 </div>
 {% endblock %}
 

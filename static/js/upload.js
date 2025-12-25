@@ -143,16 +143,43 @@ function setupFormSubmit() {
                 // Store analysis data globally
                 window.analysisData = data.data;
 
+                // Reset sit-to-stand rendered flag for new upload
+                window.sitToStandRendered = false;
+
+                // Debug: Log the received data structure
+                console.log('Received analysis data:', data.data);
+                console.log('Squat analysis exists?', !!data.data.squat_analysis);
+                if (data.data.squat_analysis) {
+                    console.log('Squat analysis structure:', Object.keys(data.data.squat_analysis));
+                    console.log('Time series exists?', !!data.data.squat_analysis.time_series);
+                    if (data.data.squat_analysis.time_series) {
+                        console.log('Time array exists?', !!data.data.squat_analysis.time_series.time);
+                        console.log('Time array length:', data.data.squat_analysis.time_series.time?.length);
+                    }
+                }
+
                 // Update UI
                 hideLoading();
                 showSuccess('분석이 완료되었습니다!');
 
+                // Show tab navigation
+                showTabNavigation();
+
                 // Show results
                 document.getElementById('analysisResults').classList.remove('hidden');
 
-                // Update charts and statistics
-                updateCharts(data.data);
-                updateStatistics(data.data.statistics);
+                // Update squat analysis charts and statistics (default tab)
+                if (data.data.squat_analysis) {
+                    console.log('Calling updateCharts with squat_analysis...');
+                    updateCharts(data.data.squat_analysis);
+                    updateStatistics(data.data.squat_analysis.statistics);
+                } else {
+                    // Backward compatibility: if no squat_analysis key, use root data
+                    console.log('Using backward compatibility mode...');
+                    updateCharts(data.data);
+                    updateStatistics(data.data.statistics);
+                }
+
                 updateFooter(data.data.metadata);
 
             } else {

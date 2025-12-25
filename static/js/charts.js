@@ -8,7 +8,28 @@ function updateCharts(data) {
         return;
     }
 
+    console.log('updateCharts called with data:', data);
+    console.log('Data keys:', Object.keys(data));
+    console.log('time_series exists?', !!data.time_series);
+    console.log('angular_velocity exists?', !!data.angular_velocity);
+    console.log('acceleration exists?', !!data.acceleration);
+    console.log('statistics exists?', !!data.statistics);
+
+    if (!data.time_series) {
+        console.error('ERROR: time_series is missing from data!');
+        showError('차트 데이터 구조 오류: time_series가 없습니다.');
+        return;
+    }
+
+    if (!data.time_series.time) {
+        console.error('ERROR: time_series.time is missing!');
+        showError('차트 데이터 구조 오류: time 배열이 없습니다.');
+        return;
+    }
+
     console.log('Rendering charts with Plotly...');
+    console.log('Time array length:', data.time_series.time.length);
+
     renderMainTimeSeries(data.time_series);
     renderAngularVelocity(data.angular_velocity, data.time_series.time);
     renderAcceleration(data.acceleration, data.time_series.time);
